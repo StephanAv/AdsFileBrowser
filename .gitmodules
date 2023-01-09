@@ -1,0 +1,3 @@
+[submodule "DeviceManager_ADS_Samples"]
+	path = DeviceManager_ADS_Samples
+	url = https://github.com/Beckhoff/DeviceManager_ADS_Samples
