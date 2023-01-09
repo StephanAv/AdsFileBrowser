@@ -48,9 +48,8 @@ unix:!macx: PRE_TARGETDEPS += $$PWD/DeviceManager_ADS_Samples/build/_deps/beckho
 # Windows ADS Client
 win32: DEFINES += USE_TWINCAT_ROUTER
 win32: INCLUDEPATH += C:\TwinCAT\AdsApi\TcAdsDll\Include
+win32: LIBS += -LC:/TwinCAT/AdsApi/TcAdsDll/x64/lib -lTcAdsDll
 
-DEPENDPATH += C:/TwinCAT/AdsApi/TcAdsDll/x64
-win32: LIBS += -L$$PWD/ -lTcAdsDll
 
 # Windows Device Manager build dependency
 
@@ -58,11 +57,3 @@ win32:CONFIG(release, debug|release): LIBS += -L$$PWD/DeviceManager_ADS_Samples/
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/DeviceManager_ADS_Samples/build/debug/ -lDeviceManager
 
 DEPENDPATH += $$PWD/DeviceManager_ADS_Samples/build/Debug
-
-
-
-#win32: LIBS += -L$$PWD/DeviceManager_ADS_Samples/build/debug/ -lDeviceManager
-#win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../../TwinCAT/AdsApi/TcAdsDll/x64/lib/ -lTcAdsDll
-#else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../../TwinCAT/AdsApi/TcAdsDll/x64/lib/ -lTcAdsDlld
-
-
