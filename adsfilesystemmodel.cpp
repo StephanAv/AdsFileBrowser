@@ -312,8 +312,9 @@ bool AdsFileSystemModel::dropMimeData(const QMimeData *data, Qt::DropAction acti
         const QList<QUrl> urls = data->urls();
         for(const auto& url : qAsConst(urls) ){
 
-            std::ifstream source(url.path().toStdString(), std::ios::binary);
+            std::ifstream source(url.toLocalFile().toStdString(), std::ios::binary);
             QString target = node->m_path + url.fileName();
+
             qint32 ret = m_fso->writeDeviceFile(target.toStdString().c_str(), source);
             handleError(ret);
 
