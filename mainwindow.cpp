@@ -45,7 +45,11 @@ E.g.:
 
     m_adsNodeModel = new AdsFileSystemModel(rootDir, AmsNetId);
 
+    /* Setup TreeView */
     m_treeView.setModel(m_adsNodeModel);
+    m_treeView.setDragEnabled(true);
+    m_treeView.viewport()->setAcceptDrops(true);
+    m_treeView.setDropIndicatorShown(true);
 
     /* Setup Download Button */
     m_downloadBtn.setText("Download");
@@ -63,9 +67,6 @@ E.g.:
     this->setCentralWidget(&m_centralWidget);
     this->setWindowTitle(QStringLiteral("ADS File Browser"));
     this->setMinimumSize(500, 500);
-
-    setAcceptDrops(true);
-    m_treeView.setAcceptDrops(true);
 }
 
 MainWindow::~MainWindow()

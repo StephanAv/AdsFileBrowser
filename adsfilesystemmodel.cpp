@@ -276,17 +276,11 @@ bool AdsFileSystemModel::canDropMimeData(const QMimeData *data, Qt::DropAction a
     Q_UNUSED(action)
     Q_UNUSED(row)
     Q_UNUSED(column)
-
-    if(parent.isValid()){
-        AdsFileInfoNode* node = Q_NULLPTR;
-        node = reinterpret_cast<AdsFileInfoNode*>(parent.internalPointer());
-        if(node){
-            if(node->m_type == FileType::Folder || node->m_type == FileType::Folder_Initialized){
-                return true;
-            }
-        }
+    if(action == Qt::CopyAction){
+        return true;
+    } else {
+        return false;
     }
-    return false;
 }
 
 bool AdsFileSystemModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent)
@@ -296,8 +290,9 @@ bool AdsFileSystemModel::dropMimeData(const QMimeData *data, Qt::DropAction acti
     Q_UNUSED(column)
 
     AdsFileInfoNode* node = Q_NULLPTR;
+    QModelIndex _parent = parent;
 
-    if(parent.isValid()){
+    if(_parent.isValid()){
         node = reinterpret_cast<AdsFileInfoNode*>(parent.internalPointer());
     } else {
         return false;
@@ -307,11 +302,17 @@ bool AdsFileSystemModel::dropMimeData(const QMimeData *data, Qt::DropAction acti
         return false;
     }
 
+    if(node->m_type == FileType::File){
+        node = node->m_parent;
+        _parent = parent.parent();
+    }
+
 
     if(data->hasUrls()){
         const QList<QUrl> urls = data->urls();
         for(const auto& url : qAsConst(urls) ){
 
+            QString localFile = url.toLocalFile();
             std::ifstream source(url.toLocalFile().toStdString(), std::ios::binary);
             QString target = node->m_path + url.fileName();
 
@@ -324,7 +325,7 @@ bool AdsFileSystemModel::dropMimeData(const QMimeData *data, Qt::DropAction acti
             if(ret == ADSERR_NOERR && !nodeAlreadyExist){
 
                 int target_row = node->m_children.count() - 1;
-                beginInsertRows(parent, target_row, target_row);
+                beginInsertRows(_parent, target_row, target_row);
 
                 auto newNode = std::shared_ptr<AdsFileInfoNode>(new AdsFileInfoNode(target, FileType::File, m_fso, node));
                 node->m_children.append(newNode);
