@@ -9,6 +9,9 @@ class AdsFileTree : public QTreeView
 public:
     AdsFileTree();
 
+signals:
+    void download(QModelIndex idx);
+
 public slots:
     void showContextMenu(const QPoint &);
     void deleteFile();

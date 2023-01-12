@@ -49,9 +49,10 @@ void AdsFileTree::showContextMenu(const QPoint &pos)
 void AdsFileTree::downloadSelected(){
 
     QModelIndexList selected = selectedIndexes();
-    const AdsFileSystemModel* adsModel = reinterpret_cast<AdsFileSystemModel*>(model());
+    //const AdsFileSystemModel* adsModel = reinterpret_cast<AdsFileSystemModel*>(model());
 
     if(!selected.isEmpty()){
-        adsModel->downloadFile(selected.first());
+        emit download(selected.first());
+        //adsModel->downloadFile();
     }
 }

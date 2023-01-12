@@ -5,7 +5,6 @@
 #include <QMessageBox>
 #include <QMimeData>
 #include <QUrl>
-#include <QStandardPaths>
 
 #include <sstream>
 #include <vector>
@@ -79,21 +78,39 @@ void AdsFileSystemModel::setRoot(const QString& root)
     }
 }
 
-void AdsFileSystemModel::downloadFile(QModelIndex &idx) const
+void AdsFileSystemModel::downloadFile(QModelIndex idx)
 {
     AdsFileInfoNode* node = reinterpret_cast<AdsFileInfoNode*>(idx.internalPointer());
     if(node && node->m_type == FileType::File){
 
-        int fileNamePos = node->m_path.lastIndexOf('/');
-        QStringRef fName(&node->m_path, fileNamePos, node->m_path.length() - fileNamePos);
+        emit download(node->m_path);
+//        int fileNamePos = node->m_path.lastIndexOf('/');
+//        QStringRef fName(&node->m_path, fileNamePos, node->m_path.length() - fileNamePos);
 
-        QString localFilePath = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
-        localFilePath.append(fName);
+//        // Auslagern
 
-        std::ofstream localFile(localFilePath.toStdString().c_str(), std::ios::binary);
+//        QProgressDialog progress("Downloading files...", "Abort", 0, 100, this);
+//        progress.setWindowModality(Qt::WindowModal);
 
-        qint32 err = m_fso->readDeviceFile(node->m_path.toStdString().c_str(), localFile);
-        handleError(err);
+//        for (int i = 0; i < numFiles; i++) {
+//            progress.setValue(i);
+
+//            if (progress.wasCanceled())
+//                break;
+//            //... copy one file
+//        }
+//        progress.setValue(numFiles);
+
+
+
+
+//        QString localFilePath = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
+//        localFilePath.append(fName);
+
+//        std::ofstream localFile(localFilePath.toStdString().c_str(), std::ios::binary);
+
+//        qint32 err = m_fso->readDeviceFile(node->m_path.toStdString().c_str(), localFile);
+//        handleError(err);
     }
 }
 

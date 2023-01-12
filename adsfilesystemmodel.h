@@ -36,14 +36,17 @@ public:
     void handleError(qint32 err) const;
     void setRoot(const QString& root);
 
-    void downloadFile(QModelIndex &idx) const;
-
     static AmsNetId createNetId(const QString& netId);
 
     std::shared_ptr<AdsFileInfoNode>                        m_rootNode;
     std::shared_ptr<BasicADS>                               m_adsClient;
     std::shared_ptr<DeviceManager::FileSystemObject>        m_fso;
 
+signals:
+    void download(QString path);
+
+public slots:
+    void downloadFile(QModelIndex idx);
 };
 
 #endif // ADSFILESYSTEMMODEL_H
