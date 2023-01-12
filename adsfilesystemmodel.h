@@ -2,6 +2,7 @@
 #define ADSFILESYSTEMMODEL_H
 
 #include <QAbstractItemModel>
+#include <QLocale>
 #include <optional>
 
 #include "file_system_object.h"

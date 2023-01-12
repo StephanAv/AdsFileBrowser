@@ -12,6 +12,9 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
+    int minWidth = 500;
+    int minHeight = 500;
+
     /* Setup QAbstractItemModel & QTreeView */
 
     QStringList args = QCoreApplication::arguments();
@@ -50,6 +53,7 @@ E.g.:
     m_treeView.setDragEnabled(true);
     m_treeView.viewport()->setAcceptDrops(true);
     m_treeView.setDropIndicatorShown(true);
+    m_treeView.setColumnWidth(0, minWidth / 1.3);
 
     /* Setup Download Button */
     m_downloadBtn.setText("Download");
@@ -66,7 +70,7 @@ E.g.:
 
     this->setCentralWidget(&m_centralWidget);
     this->setWindowTitle(QStringLiteral("ADS File Browser"));
-    this->setMinimumSize(500, 500);
+    this->setMinimumSize(minWidth, minHeight);
 }
 
 MainWindow::~MainWindow()

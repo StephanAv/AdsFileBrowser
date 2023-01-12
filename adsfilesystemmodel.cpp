@@ -44,16 +44,16 @@ AdsFileSystemModel::AdsFileSystemModel(const QString& root, const QString& amsNe
 
 void AdsFileSystemModel::setRoot(const QString& root)
 {
-    m_rootNode = std::shared_ptr<AdsFileInfoNode>(new AdsFileInfoNode(root, FileType::Root, m_fso));
+    m_rootNode = std::shared_ptr<AdsFileInfoNode>(new AdsFileInfoNode(root, FileType::Root, 0, m_fso));
 
-    auto firstNode = std::shared_ptr<AdsFileInfoNode>(new AdsFileInfoNode(root, FileType::Folder_Initialized, m_fso, m_rootNode.get()));
+    auto firstNode = std::shared_ptr<AdsFileInfoNode>(new AdsFileInfoNode(root, FileType::Folder_Initialized, 0, m_fso, m_rootNode.get()));
 
     m_rootNode->m_children.push_back(firstNode);
 
     // Fill first node
 
     std::vector<std::string> folders;
-    std::vector<std::string> files;
+    std::vector<DeviceManager::TFileInfoEx> files;
 
     QString search_path = root + "*";
     quint32 ret = m_fso->dir(search_path.toStdString().c_str(), folders, files);
@@ -66,14 +66,14 @@ void AdsFileSystemModel::setRoot(const QString& root)
 
     for(const auto& folder : folders){
         QString subFolderPath = root + QString(folder.c_str()) + QStringLiteral("/");
-        auto subFolderNode = std::shared_ptr<AdsFileInfoNode>(new AdsFileInfoNode(subFolderPath, FileType::Folder, m_fso, firstNode.get()));
+        auto subFolderNode = std::shared_ptr<AdsFileInfoNode>(new AdsFileInfoNode(subFolderPath, FileType::Folder, 0, m_fso, firstNode.get()));
         firstNode->m_children.push_back(subFolderNode);
 
     }
 
     for(const auto& file : files){
-        QString filePath = root + QString(file.c_str());
-        auto fileNode = std::shared_ptr<AdsFileInfoNode>(new AdsFileInfoNode(filePath, FileType::File, m_fso, firstNode.get()));
+        QString filePath = root + QString(file.fName.c_str());
+        auto fileNode = std::shared_ptr<AdsFileInfoNode>(new AdsFileInfoNode(filePath, FileType::File, file.filesize, m_fso, firstNode.get()));
         firstNode->m_children.push_back(fileNode);
 
     }
@@ -130,7 +130,7 @@ int AdsFileSystemModel::rowCount(const QModelIndex &parent) const
     if (node->m_type == FileType::Folder){
 
         std::vector<std::string> folders;
-        std::vector<std::string> files;
+        std::vector<DeviceManager::TFileInfoEx> files;
 
         QString search_path = node->m_path + "*";
         qint32 ret = m_fso->dir(search_path.toStdString().c_str(), folders, files);
@@ -140,14 +140,14 @@ int AdsFileSystemModel::rowCount(const QModelIndex &parent) const
 
         for(const auto& folder : folders){
             QString subFolderPath = node->m_path + QString(folder.c_str()) + QStringLiteral("/"); // TODO: Platform spezifisches Trennzeichen einfuegen
-            auto subFolderNode = std::shared_ptr<AdsFileInfoNode>(new AdsFileInfoNode(subFolderPath, FileType::Folder, m_fso, node));
+            auto subFolderNode = std::shared_ptr<AdsFileInfoNode>(new AdsFileInfoNode(subFolderPath, FileType::Folder, 0, m_fso, node));
             node->m_children.push_back(subFolderNode);
 
         }
 
         for(const auto& file : files){
-            QString filePath = node->m_path + QString(file.c_str());
-            auto fileNode = std::shared_ptr<AdsFileInfoNode>(new AdsFileInfoNode(filePath, FileType::File, m_fso, node));
+            QString filePath = node->m_path + QString(file.fName.c_str());
+            auto fileNode = std::shared_ptr<AdsFileInfoNode>(new AdsFileInfoNode(filePath, FileType::File, file.filesize, m_fso, node));
             node->m_children.push_back(fileNode);
 
         }
@@ -159,7 +159,7 @@ int AdsFileSystemModel::rowCount(const QModelIndex &parent) const
 int AdsFileSystemModel::columnCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent)
-    return 1;
+    return 2;
 }
 
 QModelIndex AdsFileSystemModel::index(int row, int column, const QModelIndex &parent) const
@@ -243,7 +243,15 @@ QVariant AdsFileSystemModel::data(const QModelIndex &index, int role) const
     }
 
     if(role == 0){
-        return QVariant(node->m_path);
+        //return QVariant(node->m_path);
+        if(index.column() == 0){
+            return QVariant(node->m_path);
+        } else if (index.column() == 1 && node->m_type == FileType::File){
+            return QVariant(QLocale::system().formattedDataSize(node->m_fileSize));
+        } else {
+            return QVariant("-/-");
+        }
+
     } else {
         return QVariant();
     }
@@ -254,7 +262,11 @@ QVariant AdsFileSystemModel::headerData(int section, Qt::Orientation orientation
     Q_UNUSED(section)
     QVariant ret;
     if(orientation == Qt::Horizontal && role == Qt::DisplayRole){
-        ret = QVariant("Path");
+        if(section == 0){
+            ret = QVariant("Path");
+        } else if (section == 1) {
+            ret = QVariant("Size");
+        }
     }
     return ret;
 }
@@ -273,9 +285,9 @@ Qt::ItemFlags AdsFileSystemModel::flags(const QModelIndex &index) const
 bool AdsFileSystemModel::canDropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) const
 {
     Q_UNUSED(data)
-    Q_UNUSED(action)
     Q_UNUSED(row)
     Q_UNUSED(column)
+    Q_UNUSED(parent)
     if(action == Qt::CopyAction){
         return true;
     } else {
@@ -313,7 +325,7 @@ bool AdsFileSystemModel::dropMimeData(const QMimeData *data, Qt::DropAction acti
         for(const auto& url : qAsConst(urls) ){
 
             QString localFile = url.toLocalFile();
-            std::ifstream source(url.toLocalFile().toStdString(), std::ios::binary);
+            std::ifstream source(url.toLocalFile().toStdString(), std::ios::binary); // TODO
             QString target = node->m_path + url.fileName();
 
             qint32 ret = m_fso->writeDeviceFile(target.toStdString().c_str(), source);
@@ -327,7 +339,7 @@ bool AdsFileSystemModel::dropMimeData(const QMimeData *data, Qt::DropAction acti
                 int target_row = node->m_children.count() - 1;
                 beginInsertRows(_parent, target_row, target_row);
 
-                auto newNode = std::shared_ptr<AdsFileInfoNode>(new AdsFileInfoNode(target, FileType::File, m_fso, node));
+                auto newNode = std::shared_ptr<AdsFileInfoNode>(new AdsFileInfoNode(target, FileType::File, 12, m_fso, node)); // TODO
                 node->m_children.append(newNode);
 
                 endInsertRows();

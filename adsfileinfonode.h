@@ -16,11 +16,12 @@ enum FileType {
 class AdsFileInfoNode
 {
 public:
-    AdsFileInfoNode(QString path, FileType type, std::shared_ptr<DeviceManager::FileSystemObject> fso, AdsFileInfoNode* parent = Q_NULLPTR);
+    AdsFileInfoNode(QString path, FileType type, qint64 fileSize, std::shared_ptr<DeviceManager::FileSystemObject> fso, AdsFileInfoNode* parent = Q_NULLPTR);
     ~AdsFileInfoNode();
 
     QString                                             m_path;
     FileType                                            m_type;
+    qint64                                              m_fileSize;
     std::shared_ptr<DeviceManager::FileSystemObject>    m_fso;
     AdsFileInfoNode                                     *m_parent;
     QVector<std::shared_ptr<AdsFileInfoNode>>           m_children;
