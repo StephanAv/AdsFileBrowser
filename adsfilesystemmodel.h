@@ -4,6 +4,7 @@
 #include <QAbstractItemModel>
 #include <QLocale>
 #include <optional>
+#include <functional>
 
 #include "file_system_object.h"
 #include "adsfileinfonode.h"
@@ -21,7 +22,7 @@ class AdsFileSystemModel : public QAbstractItemModel
     Q_OBJECT
 public:
 
-    AdsFileSystemModel(const QString& root, const QString& amsNetId);
+    AdsFileSystemModel(const QString& root, const QString& amsNetId, std::function<size_t(QString, QString)> processUpload);
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
@@ -42,8 +43,12 @@ public:
     std::shared_ptr<BasicADS>                               m_adsClient;
     std::shared_ptr<DeviceManager::FileSystemObject>        m_fso;
 
+ private:
+    std::function<size_t(QString, QString)> m_processUpload;
+
 signals:
     void download(QString path);
+    //void upload(QString localFile, QString targetFile);
 
 public slots:
     void downloadFile(QModelIndex idx);

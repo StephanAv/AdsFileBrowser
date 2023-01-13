@@ -49,8 +49,13 @@ E.g.:
         exit(EXIT_FAILURE);
     }
 
-    m_adsNodeModel = new AdsFileSystemModel(rootDir, AmsNetId);
+    std::function<size_t(QString, QString)> fUpload = [=](QString a, QString b){
+        return this->processUpload(a, b);
+    };
+
+    m_adsNodeModel = new AdsFileSystemModel(rootDir, AmsNetId, fUpload);
     connect(m_adsNodeModel, &AdsFileSystemModel::download, this, &MainWindow::processDownload);
+    //connect(m_adsNodeModel, &AdsFileSystemModel::upload, this, &MainWindow::processUpload);
 
     /* Setup TreeView */
     m_treeView.setModel(m_adsNodeModel);
@@ -78,6 +83,28 @@ E.g.:
     this->setMinimumSize(minWidth, minHeight);
 }
 
+size_t MainWindow::processUpload(QString localFile, QString targetFile)
+{
+    qDebug() << "processUpload!";
+    std::ifstream source(localFile.toStdString(), std::ios::binary); // TODO
+
+    int fileNamePos = localFile.lastIndexOf('/');
+    QStringRef fName(&localFile, fileNamePos, localFile.length() - fileNamePos);
+
+    QProgressDialog *progress = new QProgressDialog(QString("Uploading ").append(fName.right(fName.size()-1)), "Abort", 0, 100, this);
+    connect(progress, &QProgressDialog::canceled, this, &MainWindow::transferCanceled);
+    std::function<void(int)> fBar = [&](int x){  progress->setValue(x) ;};
+    progress->open();
+
+    m_cancelTransfer = false;
+    qint32 err = m_adsNodeModel->m_fso->writeDeviceFile(targetFile.toStdString().c_str(), source, fBar, m_cancelTransfer);
+
+    progress->reset();
+    m_adsNodeModel->handleError(err);
+
+    return 0;
+}
+
 void MainWindow::processDownload(QString remoteFile)
 {
     int fileNamePos = remoteFile.lastIndexOf('/');
@@ -89,20 +116,20 @@ void MainWindow::processDownload(QString remoteFile)
     std::ofstream localFile(localFilePath.toStdString().c_str(), std::ios::binary);
 
     QProgressDialog *progress = new QProgressDialog(QString("Downloading ").append(fName.right(fName.size()-1)), "Abort", 0, 100, this);
-    connect(progress, &QProgressDialog::canceled, this, &MainWindow::downloadCanceled);
+    connect(progress, &QProgressDialog::canceled, this, &MainWindow::transferCanceled);
     std::function<void(int)> fBar = [&](int x){  progress->setValue(x) ;};
     progress->open();
 
-    m_cancelDownload = false;
-    qint32 err = m_adsNodeModel->m_fso->readDeviceFile(remoteFile.toStdString().c_str(), localFile, fBar, m_cancelDownload);
+    m_cancelTransfer = false;
+    qint32 err = m_adsNodeModel->m_fso->readDeviceFile(remoteFile.toStdString().c_str(), localFile, fBar, m_cancelTransfer);
 
     progress->reset();
     m_adsNodeModel->handleError(err);
 }
 
-void MainWindow::downloadCanceled()
+void MainWindow::transferCanceled()
 {
-    m_cancelDownload = true;
+    m_cancelTransfer = true;
 }
 
 MainWindow::~MainWindow()

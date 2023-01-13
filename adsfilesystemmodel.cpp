@@ -12,8 +12,9 @@
 #include <algorithm>
 #include <system_error>
 
-AdsFileSystemModel::AdsFileSystemModel(const QString& root, const QString& amsNetId)
+AdsFileSystemModel::AdsFileSystemModel(const QString& root, const QString& amsNetId, std::function<size_t(QString, QString)> processUpload)
     : QAbstractItemModel()
+    , m_processUpload(processUpload)
 {
     m_adsClient = std::shared_ptr<BasicADS>(new TC1000AdsClient(createNetId(amsNetId)));
     try {
@@ -338,25 +339,25 @@ bool AdsFileSystemModel::dropMimeData(const QMimeData *data, Qt::DropAction acti
 
 
     if(data->hasUrls()){
+
         const QList<QUrl> urls = data->urls();
         for(const auto& url : qAsConst(urls) ){
 
+
+            QString targetFile = node->m_path + url.fileName();
             QString localFile = url.toLocalFile();
-            std::ifstream source(url.toLocalFile().toStdString(), std::ios::binary); // TODO
-            QString target = node->m_path + url.fileName();
 
-            qint32 ret = m_fso->writeDeviceFile(target.toStdString().c_str(), source);
-            handleError(ret);
+            size_t size = m_processUpload(localFile, targetFile);
 
-            auto ftest = [&](std::shared_ptr<AdsFileInfoNode> in){ return in->m_path == target; };
+            auto ftest = [&](std::shared_ptr<AdsFileInfoNode> in){ return in->m_path == targetFile; };
             bool nodeAlreadyExist = std::find_if(node->m_children.begin(), node->m_children.end(), ftest) != node->m_children.end();
 
-            if(ret == ADSERR_NOERR && !nodeAlreadyExist){
+            if(!nodeAlreadyExist){
 
                 int target_row = node->m_children.count() - 1;
                 beginInsertRows(_parent, target_row, target_row);
-
-                auto newNode = std::shared_ptr<AdsFileInfoNode>(new AdsFileInfoNode(target, FileType::File, 12, m_fso, node)); // TODO
+                // TODO: Node korrekt setzen ?
+                auto newNode = std::shared_ptr<AdsFileInfoNode>(new AdsFileInfoNode(targetFile, FileType::File, size, m_fso, node));
                 node->m_children.append(newNode);
 
                 endInsertRows();

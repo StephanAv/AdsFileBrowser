@@ -41,13 +41,17 @@ public:
     QPushButton m_downloadBtn;
 
     // Cancel token
-    bool m_cancelDownload;
+    bool m_cancelTransfer;
 
-signals:
-    void progressMade(int progress);
+    // Upload function
+    size_t processUpload(QString localFile, QString targetFile);
+
+ signals:
+    void addNode();
 
 public slots:
-    void downloadCanceled();
+    void transferCanceled();
     void processDownload(QString remoteFile);
+
 };
 #endif // MAINWINDOW_H
