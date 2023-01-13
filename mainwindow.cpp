@@ -62,7 +62,6 @@ E.g.:
 
     /* Setup Download Button */
     m_downloadBtn.setText("Download");
-    //connect(&m_downloadBtn, &QPushButton::clicked, this, &MainWindow::showProgress);
     connect(&m_downloadBtn, &QPushButton::clicked, &m_treeView, &AdsFileTree::downloadSelected);
 
     /* Setup Main Layout */
@@ -90,10 +89,12 @@ void MainWindow::processDownload(QString remoteFile)
     std::ofstream localFile(localFilePath.toStdString().c_str(), std::ios::binary);
 
     QProgressDialog *progress = new QProgressDialog(QString("Downloading ").append(fName.right(fName.size()-1)), "Abort", 0, 100, this);
+    connect(progress, &QProgressDialog::canceled, this, &MainWindow::downloadCanceled);
     std::function<void(int)> fBar = [&](int x){  progress->setValue(x) ;};
     progress->open();
 
-    qint32 err = m_adsNodeModel->m_fso->readDeviceFile(remoteFile.toStdString().c_str(), localFile, fBar);
+    m_cancelDownload = false;
+    qint32 err = m_adsNodeModel->m_fso->readDeviceFile(remoteFile.toStdString().c_str(), localFile, fBar, m_cancelDownload);
 
     progress->reset();
     m_adsNodeModel->handleError(err);
@@ -101,7 +102,7 @@ void MainWindow::processDownload(QString remoteFile)
 
 void MainWindow::downloadCanceled()
 {
-    qDebug() << "downloadCanceled";
+    m_cancelDownload = true;
 }
 
 MainWindow::~MainWindow()

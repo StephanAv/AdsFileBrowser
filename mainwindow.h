@@ -40,6 +40,9 @@ public:
     // Download button
     QPushButton m_downloadBtn;
 
+    // Cancel token
+    bool m_cancelDownload;
+
 signals:
     void progressMade(int progress);
 
