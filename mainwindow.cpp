@@ -10,6 +10,8 @@
 #include <QMessageBox>
 #include <QStandardPaths>
 
+#include <functional>
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
@@ -75,40 +77,10 @@ E.g.:
     this->setCentralWidget(&m_centralWidget);
     this->setWindowTitle(QStringLiteral("ADS File Browser"));
     this->setMinimumSize(minWidth, minHeight);
-
-    //m_progressDialog.setParent(this);
-    m_progressDialog.cancel();
-    m_progressDialog.setMinimum(0);
-    m_progressDialog.setMaximum(100);
-    m_progressDialog.setMinimumDuration(500);
-    m_progressDialog.setAutoClose(true);
-    m_progressDialog.setLabelText(QStringLiteral("Downloading files..."));
-    m_progressDialog.setCancelButtonText(QStringLiteral("Abort"));
-    m_progressDialog.setWindowModality(Qt::WindowModal);
-    //m_progressBar.setParent(this);
-    //m_progressBar.show();
-    //m_progressBar.exec();
 }
 
 void MainWindow::processDownload(QString remoteFile)
 {
-    qDebug() << "processDownload() called";
-
-
-//    QProgressDialog *progress = new QProgressDialog("Downloading files...", "Abort", 0, 100, this);
-//    progress->setWindowModality(Qt::WindowModal);
-
-//    for (int i = 0; i < numFiles; i++) {
-//        progress.setValue(i);
-
-//        if (progress.wasCanceled())
-//            break;
-//        //... copy one file
-//    }
-//    progress.setValue(numFiles);
-
-    //void (*barValue)(int p) = [&](int p) { progress.setValue(p); };
-
     int fileNamePos = remoteFile.lastIndexOf('/');
     QStringRef fName(&remoteFile, fileNamePos, remoteFile.length() - fileNamePos);
 
@@ -116,36 +88,21 @@ void MainWindow::processDownload(QString remoteFile)
     localFilePath.append(fName);
 
     std::ofstream localFile(localFilePath.toStdString().c_str(), std::ios::binary);
-    m_progressDialog.reset();
-    //m_progressDialog.open(this, "downloadCanceled");
-    m_progressDialog.show();
-    //m_progressDialog.setValue(12);
-    //void (*barValue)(int p) = m_progressDialog.setValue;
-    //connect( &m_progressDialog, &QProgressDialog::)
-    qint32 err = m_adsNodeModel->m_fso->readDeviceFile(remoteFile.toStdString().c_str(), localFile, this->m_progressDialog.setValue);
+
+    QProgressDialog *progress = new QProgressDialog(QString("Downloading ").append(fName.right(fName.size()-1)), "Abort", 0, 100, this);
+    std::function<void(int)> fBar = [&](int x){  progress->setValue(x) ;};
+    progress->open();
+
+    qint32 err = m_adsNodeModel->m_fso->readDeviceFile(remoteFile.toStdString().c_str(), localFile, fBar);
+
+    progress->reset();
     m_adsNodeModel->handleError(err);
-}
-
-
-void MainWindow::makeProgress(int progress)
-{
-    qDebug() << "Progress: " << progress;
-
-    //emit progressMade(progress);
-    //m_progressDialog.setValue(progress);
 }
 
 void MainWindow::downloadCanceled()
 {
     qDebug() << "downloadCanceled";
 }
-void MainWindow::showProgress()
-{
-    qDebug() << "MainWindow::showProgress() clicked";
-    //m_progressBar.exec();
-    //m_progressBar.show();
-}
-
 
 MainWindow::~MainWindow()
 {

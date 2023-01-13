@@ -9,7 +9,6 @@
 
 #include "adsfilesystemmodel.h"
 #include "adsfiletree.h"
-#include "progressbar.h"
 
 #include <QProgressDialog>
 
@@ -41,17 +40,10 @@ public:
     // Download button
     QPushButton m_downloadBtn;
 
-    // Progress Bar
-    //ProgressBar m_progressBar;
-    QProgressDialog m_progressDialog;
-
-    static void makeProgress(int progress);
-
 signals:
     void progressMade(int progress);
 
 public slots:
-    void showProgress();
     void downloadCanceled();
     void processDownload(QString remoteFile);
 };
