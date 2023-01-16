@@ -202,7 +202,7 @@ QModelIndex AdsFileSystemModel::index(int row, int column, const QModelIndex &pa
 
 
     } else {
-        qDebug() << "QModelIndex invalid for " << node->m_path;
+        //qDebug() << "QModelIndex invalid for " << node->m_path;
     }
     return idx;
 }
@@ -373,7 +373,6 @@ bool AdsFileSystemModel::dropMimeData(const QMimeData *data, Qt::DropAction acti
 bool AdsFileSystemModel::removeRows(int row, int count, const QModelIndex &parent){
 
     Q_UNUSED(count)
-    qDebug() << "Remove Rows called!!! row: " << row;
 
     AdsFileInfoNode* node = reinterpret_cast<AdsFileInfoNode*>(parent.internalPointer());
     if(!node) return false;

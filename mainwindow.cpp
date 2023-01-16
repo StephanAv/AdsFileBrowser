@@ -84,7 +84,6 @@ E.g.:
 
 size_t MainWindow::processUpload(QString localFile, QString targetFile)
 {
-    qDebug() << "processUpload!";
     std::ifstream source(localFile.toStdString(), std::ios::binary); // TODO
 
     int fileNamePos = localFile.lastIndexOf('/');
