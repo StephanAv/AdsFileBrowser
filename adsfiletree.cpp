@@ -23,17 +23,16 @@ AdsFileTree::AdsFileTree() : QTreeView()
 void AdsFileTree::deleteFile()
 {
     QModelIndexList selected = selectedIndexes();
-    for(const auto& idx : selected){
-        if(!idx.isValid()) continue;
-
-        //AdsFileInfoNode* node = reinterpret_cast<AdsFileInfoNode*>(idx.internalPointer());
-
-        //if(!node) continue;
+    if(!selected.empty()){
+        QModelIndex idx = selected.first();
+        if(!idx.isValid()) return;
         model()->removeRows(idx.row(), 1, idx);
-        //rowsAboutToBeRemoved(idx, idx.row(), idx.row());
-
-
     }
+
+//    for(const auto& idx : selected){
+//        if(!idx.isValid()) continue;
+//        model()->removeRows(idx.row(), 1, idx);
+//    }
 }
 
 void AdsFileTree::showContextMenu(const QPoint &pos)

@@ -55,7 +55,6 @@ E.g.:
 
     m_adsNodeModel = new AdsFileSystemModel(rootDir, AmsNetId, fUpload);
     connect(m_adsNodeModel, &AdsFileSystemModel::download, this, &MainWindow::processDownload);
-    //connect(m_adsNodeModel, &AdsFileSystemModel::upload, this, &MainWindow::processUpload);
 
     /* Setup TreeView */
     m_treeView.setModel(m_adsNodeModel);
@@ -97,12 +96,13 @@ size_t MainWindow::processUpload(QString localFile, QString targetFile)
     progress->open();
 
     m_cancelTransfer = false;
-    qint32 err = m_adsNodeModel->m_fso->writeDeviceFile(targetFile.toStdString().c_str(), source, fBar, m_cancelTransfer);
+    size_t bytesWritten = 0;
+    qint32 err = m_adsNodeModel->m_fso->writeDeviceFile(targetFile.toStdString().c_str(), source, bytesWritten, fBar, m_cancelTransfer);
 
     progress->reset();
     m_adsNodeModel->handleError(err);
 
-    return 0;
+    return bytesWritten;
 }
 
 void MainWindow::processDownload(QString remoteFile)
@@ -121,7 +121,8 @@ void MainWindow::processDownload(QString remoteFile)
     progress->open();
 
     m_cancelTransfer = false;
-    qint32 err = m_adsNodeModel->m_fso->readDeviceFile(remoteFile.toStdString().c_str(), localFile, fBar, m_cancelTransfer);
+    size_t bytesDownloaded = 0;
+    qint32 err = m_adsNodeModel->m_fso->readDeviceFile(remoteFile.toStdString().c_str(), localFile, bytesDownloaded, fBar, m_cancelTransfer);
 
     progress->reset();
     m_adsNodeModel->handleError(err);
