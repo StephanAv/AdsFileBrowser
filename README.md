@@ -1,7 +1,15 @@
 # AdsFileBrowser
 
-File system access via ADS  
-![ads_file_browser_gui.png](/assets/ads_file_browser_gui.png?raw=true)
+Access the file system via ADS
+
+### Download from target
+![ads_file_browser_download.gif](/assets/ads_file_browser_download.gif?raw=true)
+
+### Upload to target
+![ads_file_browser_upload.gif](/assets/ads_file_browser_upload.gif?raw=true)
+
+### Delete files
+![ads_file_browser_delete.gif](/assets/ads_file_browser_delete.gif?raw=true)
 
 ### Installation 
 
