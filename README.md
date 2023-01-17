@@ -1,6 +1,6 @@
 # AdsFileBrowser
 
-File system access via ADS
+File system access via ADS  
 ![ads_file_browser_gui.png](/assets/ads_file_browser_gui.png?raw=true)
 
 ### Installation 
