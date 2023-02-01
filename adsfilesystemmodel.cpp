@@ -391,7 +391,7 @@ bool AdsFileSystemModel::removeRows(int row, int count, const QModelIndex &paren
     AdsFileInfoNode* node = reinterpret_cast<AdsFileInfoNode*>(parent.internalPointer());
     if(!node) return false;
 
-    AdsFileInfoNode* parentNode = reinterpret_cast<AdsFileInfoNode*>(node->m_parent);
+    AdsFileInfoNode* parentNode = node->m_parent;
 
     if(!parentNode) return false;
 
