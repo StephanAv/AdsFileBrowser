@@ -18,3 +18,7 @@ Access the file system via ADS
 ![link_and_rename.gif](/assets/link_and_rename.gif?raw=true)
 3. Add AmsNetId and root folder as command line arguments  
 ![link_properties.png](/assets/link_properties.png?raw=true)
+
+### Dependencies
+
+[Link version of DeviceManager_ADS_Sample](https://github.com/Beckhoff/DeviceManager_ADS_Samples/tree/7045e8e7ca14d4765230cdead5af77d747c462a4)
