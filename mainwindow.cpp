@@ -78,7 +78,7 @@ E.g.:
     m_centralWidget.setLayout(&m_mainLayout);
 
     this->setCentralWidget(&m_centralWidget);
-    this->setWindowTitle(QStringLiteral("ADS File Browser"));
+    this->setWindowTitle(QStringLiteral("ADS File Browser v1.2"));
     this->setMinimumSize(minWidth, minHeight);
 }
 

@@ -152,7 +152,10 @@ int AdsFileSystemModel::rowCount(const QModelIndex &parent) const
 
         QString search_path = node->m_path + "*";
         qint32 ret = m_fso->dir(search_path.toStdString().c_str(), folders, files);
-        handleError(ret);
+
+        if( (ret & 0xFFFFFFFF) != 0xECA70002){ // Special case: folder is empty!
+            handleError(ret);
+        }
 
         node->m_type = FileType::Folder_Initialized;
 
