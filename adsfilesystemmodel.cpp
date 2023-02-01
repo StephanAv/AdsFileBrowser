@@ -152,8 +152,13 @@ int AdsFileSystemModel::rowCount(const QModelIndex &parent) const
 
         QString search_path = node->m_path + "*";
         qint32 ret = m_fso->dir(search_path.toStdString().c_str(), folders, files);
+        qint32 _ret = ret & 0xFFFFFFFF;
 
-        if( (ret & 0xFFFFFFFF) != 0xECA70002){ // Special case: folder is empty!
+        if(_ret == 0xECA70002){
+            //node->m_extraInfo = QStringLiteral("Empty");
+        } else if (_ret == 0xECA70005) {
+            node->m_extraInfo = QStringLiteral("Access denied");
+        } else {
             handleError(ret);
         }
 
@@ -264,13 +269,19 @@ QVariant AdsFileSystemModel::data(const QModelIndex &index, int role) const
     }
 
     if(role == 0){
-        //return QVariant(node->m_path);
+
         if(index.column() == 0){
             return QVariant(node->m_path);
         } else if (index.column() == 1 && node->m_type == FileType::File){
             return QVariant(QLocale::system().formattedDataSize(node->m_fileSize));
         } else {
-            return QVariant("-/-");
+            // Folders
+            if(node->m_extraInfo.isEmpty()){
+                return QVariant("-/-");
+            } else {
+                return QVariant(node->m_extraInfo);
+            }
+
         }
 
     } else {

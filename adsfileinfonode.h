@@ -20,6 +20,7 @@ public:
     ~AdsFileInfoNode();
 
     QString                                             m_path;
+    QString                                             m_extraInfo; // e.g. folder empty, access denied
     FileType                                            m_type;
     qint64                                              m_fileSize;
     std::shared_ptr<DeviceManager::FileSystemObject>    m_fso;
