@@ -2,7 +2,7 @@
 #include <QString>
 #include <QDebug>
 
-AdsFileInfoNode::AdsFileInfoNode(QString path, FileType type, qint64 fileSize, std::shared_ptr<DeviceManager::FileSystemObject> fso, AdsFileInfoNode* parent)
+AdsFileInfoNode::AdsFileInfoNode(QString path, FileType type, qint64 fileSize, std::shared_ptr<DeviceManager::FileSystemObject> fso, std::shared_ptr<AdsFileInfoNode> parent)
     : m_path(path)
     , m_type(type)
     , m_fileSize(fileSize)
@@ -13,4 +13,5 @@ AdsFileInfoNode::AdsFileInfoNode(QString path, FileType type, qint64 fileSize, s
 
 AdsFileInfoNode::~AdsFileInfoNode()
 {
+    //qDebug() << __func__ << " - " << m_path;
 }

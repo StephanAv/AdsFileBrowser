@@ -23,6 +23,7 @@ class AdsFileSystemModel : public QAbstractItemModel
 public:
 
     AdsFileSystemModel(const QString& root, const QString& amsNetId, std::function<size_t(QString, QString)> processUpload);
+    ~AdsFileSystemModel();
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
@@ -44,7 +45,11 @@ public:
     std::shared_ptr<DeviceManager::FileSystemObject>        m_fso;
 
  private:
+
+    std::shared_ptr<AdsFileInfoNode> getPtr(const AdsFileInfoNode* rawPtr) const;
+
     std::function<size_t(QString, QString)> m_processUpload;
+
 
 signals:
     void download(QString path);

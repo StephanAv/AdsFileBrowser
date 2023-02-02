@@ -26,7 +26,7 @@ void AdsFileTree::deleteFile()
     if(!selected.empty()){
         QModelIndex idx = selected.first();
         if(!idx.isValid()) return;
-        model()->removeRows(idx.row(), 1, idx);
+        model()->removeRows(idx.row(), 1, idx); // STOP
     }
 
 //    for(const auto& idx : selected){
