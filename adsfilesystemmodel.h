@@ -40,7 +40,8 @@ public:
 
     static AmsNetId createNetId(const QString& netId);
 
-    std::shared_ptr<AdsFileInfoNode>                        m_rootNode;
+    QVector<std::shared_ptr<AdsFileInfoNode>>               m_root;
+    //std::shared_ptr<AdsFileInfoNode>                        m_rootNode;
     std::shared_ptr<BasicADS>                               m_adsClient;
     std::shared_ptr<DeviceManager::FileSystemObject>        m_fso;
 

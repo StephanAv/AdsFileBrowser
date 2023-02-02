@@ -27,8 +27,8 @@ MainWindow::MainWindow(QWidget *parent)
         QString errStr =    R"(Program takes exactly 2 Arguments:
 AmsNetId [STRING], root folder [STRING]
 E.g.:
-5.69.55.236.1.1 C:/TwinCAT/
-5.80.201.232.1.1 /usr/local/etc/TwinCAT/)";
+5.69.55.236.1.1 C:/TwinCAT
+5.80.201.232.1.1 /usr/local/etc/TwinCAT)";
 
         QMessageBox messageBox;
         messageBox.setText(errStr);
