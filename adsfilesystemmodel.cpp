@@ -133,7 +133,6 @@ std::shared_ptr<AdsFileInfoNode> AdsFileSystemModel::getPtr(const AdsFileInfoNod
         }
     }
 
-
     return ptr;
 }
 
@@ -151,7 +150,6 @@ int AdsFileSystemModel::rowCount(const QModelIndex &parent) const
 
 
     if (node->m_type == FileType::Folder){
-
 
         std::vector<std::string> folders;
         std::vector<DeviceManager::TFileInfoEx> files;
@@ -177,7 +175,6 @@ int AdsFileSystemModel::rowCount(const QModelIndex &parent) const
 
         for(const auto& file : files){
             auto fileNode = std::shared_ptr<AdsFileInfoNode>(new AdsFileInfoNode(node->m_absPath, QString(file.fName.c_str()), FileType::File, file.filesize, m_fso, node ));
-            // TODO sub_a wird hier nicht berücksichtigt
             node->m_children.push_back(fileNode);
         }
     }
@@ -196,54 +193,19 @@ QModelIndex AdsFileSystemModel::index(int row, int column, const QModelIndex &pa
     AdsFileInfoNode* _node = Q_NULLPTR;
     std::shared_ptr<AdsFileInfoNode> node;
 
-    QModelIndex idx;
-
     if(parent.isValid()){
         _node = reinterpret_cast<AdsFileInfoNode*>(parent.internalPointer());
         node = getPtr(_node);
-    } else {
-        // root
-        node = m_root[row];
-    }
-
-    if(parent.isValid()){
-        //node = m_root[row];
-        //auto parent = node->m_children[row]; // Stack overflow
         node = node->m_children[row];
-        return createIndex(row, column, node.get()); // Stack overflow
+        return createIndex(row, column, node.get());
     } else {
-
-        return createIndex(row, column, node.get()); // Ohne das hier wird gar nichts angezeigt
-        //return idx;
+        node = m_root[row];
+        return createIndex(row, column, node.get());
     }
-//    if(parent.isValid()){
-//        node = node->m_children[row];
-//        return createIndex(row, column, node.get());
-//    }
-
-    return createIndex(row, column, node.get());
-
-
-//    if( (node->m_type == FileType::Folder_Initialized ||
-//         node->m_type == FileType::Root)
-//         &&
-//         row >= 0)
-//    {
-//        if(row < node->m_children.count()){
-//            AdsFileInfoNode* childAtRow = node->m_children[row].get();
-//            idx = createIndex(row, column, childAtRow);
-//        }
-
-
-//    } else {
-//        qDebug() << "QModelIndex invalid for " << node->m_path;
-//    }
-//    return idx;
 }
 
 QModelIndex AdsFileSystemModel::parent(const QModelIndex &index) const
 {
-
     AdsFileInfoNode* node = Q_NULLPTR;
     if(!index.isValid()){
         return QModelIndex();
@@ -251,12 +213,7 @@ QModelIndex AdsFileSystemModel::parent(const QModelIndex &index) const
 
     node = reinterpret_cast<AdsFileInfoNode*>(index.internalPointer());
 
-    if(!node){
-        return QModelIndex();
-    }
-
     if(!node->m_parent){
-        int x = 3;
         return QModelIndex();
     } else {
 
@@ -265,11 +222,9 @@ QModelIndex AdsFileSystemModel::parent(const QModelIndex &index) const
 
         for(int row = 0; row < parent->m_children.count(); row++){
             if(parent->m_children[row].get() == node){
-                qDebug() << "Parent row: " << row;
                 return createIndex(row, 0, parent.get());
                 break;
             }
-
         }
     }
     return QModelIndex();
@@ -370,14 +325,12 @@ bool AdsFileSystemModel::dropMimeData(const QMimeData *data, Qt::DropAction acti
         _parent = parent.parent();
     }
 
-
     if(data->hasUrls()){
 
         const QList<QUrl> urls = data->urls();
         for(const auto& url : qAsConst(urls) ){
 
-
-            QString targetFile = node->m_absPath + url.fileName();
+            QString targetFile = node->m_absPath + "/" + url.fileName();
             QString localFile = url.toLocalFile();
 
             size_t size = m_processUpload(localFile, targetFile);
@@ -389,7 +342,6 @@ bool AdsFileSystemModel::dropMimeData(const QMimeData *data, Qt::DropAction acti
 
                 int target_row = node->m_children.count() - 1;
                 beginInsertRows(_parent, target_row, target_row);
-                // TODO: Node korrekt setzen ?
                 auto newNode = std::shared_ptr<AdsFileInfoNode>(new AdsFileInfoNode(node->m_absPath, url.fileName(), FileType::File, size, m_fso, node));
                 node->m_children.append(newNode);
 
