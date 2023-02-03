@@ -3,7 +3,7 @@
 #include <QDebug>
 
 AdsFileInfoNode::AdsFileInfoNode(QString path, QString name, FileType type, qint64 fileSize, std::shared_ptr<DeviceManager::FileSystemObject> fso, std::shared_ptr<AdsFileInfoNode> parent)
-    : m_absPath(path + name)
+    : m_absPath(path + "/" + name)
     , m_type(type)
     , m_fileSize(fileSize)
     , m_fso(fso)
@@ -11,11 +11,8 @@ AdsFileInfoNode::AdsFileInfoNode(QString path, QString name, FileType type, qint
 {
 
     m_path = QStringRef(&m_absPath, 0, path.length());
-    m_name = QStringRef(&m_absPath, path.length(), name.length());
+    m_name = QStringRef(&m_absPath, path.length() + 1, name.length()); // +1 for the "/"
 
-    if(type == FileType::Folder || FileType::Root){
-         m_absPath.append(QStringLiteral("/"));
-    }
 
     int x = 3;
 }

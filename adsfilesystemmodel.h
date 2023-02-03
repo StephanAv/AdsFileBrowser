@@ -6,6 +6,7 @@
 #include <optional>
 #include <functional>
 
+
 #include "file_system_object.h"
 #include "adsfileinfonode.h"
 
