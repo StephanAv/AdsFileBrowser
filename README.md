@@ -21,4 +21,4 @@ Access the file system via ADS
 
 ### Dependencies
 
-[Link version of DeviceManager_ADS_Sample](https://github.com/Beckhoff/DeviceManager_ADS_Samples/tree/7045e8e7ca14d4765230cdead5af77d747c462a4)
+[Link version of DeviceManager_ADS_Sample](https://github.com/Beckhoff/DeviceManager_ADS_Samples/tree/d145f21c018561253dea3f0eaf758084b2632c6d)

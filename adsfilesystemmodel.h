@@ -37,12 +37,12 @@ public:
     bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) override;
     bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
     void handleError(qint32 err) const;
-    void setRoot(const QString& root);
+    void setRoot();
 
     static AmsNetId createNetId(const QString& netId);
 
+    const QString                                           m_rootPath;
     QVector<std::shared_ptr<AdsFileInfoNode>>               m_root;
-    //std::shared_ptr<AdsFileInfoNode>                        m_rootNode;
     std::shared_ptr<BasicADS>                               m_adsClient;
     std::shared_ptr<DeviceManager::FileSystemObject>        m_fso;
 
@@ -55,7 +55,6 @@ public:
 
 signals:
     void download(QString path);
-    //void upload(QString localFile, QString targetFile);
 
 public slots:
     void downloadFile(QModelIndex idx);

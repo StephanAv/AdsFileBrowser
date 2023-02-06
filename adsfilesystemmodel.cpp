@@ -15,6 +15,7 @@
 
 AdsFileSystemModel::AdsFileSystemModel(const QString& root, const QString& amsNetId, std::function<size_t(QString, QString)> processUpload)
     : QAbstractItemModel()
+    , m_rootPath(root)
     , m_processUpload(processUpload)
 {
     m_adsClient = std::shared_ptr<BasicADS>(new TC1000AdsClient(createNetId(amsNetId)));
@@ -40,7 +41,7 @@ AdsFileSystemModel::AdsFileSystemModel(const QString& root, const QString& amsNe
         throw std::system_error(ENOENT, std::generic_category(), errStr.toStdString());
     }
 
-    setRoot(root);
+    setRoot();
 }
 
 AdsFileSystemModel::~AdsFileSystemModel()
@@ -48,14 +49,10 @@ AdsFileSystemModel::~AdsFileSystemModel()
     //qDebug() << __func__;
 }
 
-void AdsFileSystemModel::setRoot(const QString& root)
+void AdsFileSystemModel::setRoot()
 {
-    QDir rootDir(root);
-    //QString rootDirName = rootDir.dirName(); // AdsFileBrowser == name
+    QDir rootDir(m_rootPath);
     QString rootPathAbs = rootDir.path();
-//    rootDir.cdUp();
-//    QString rootPath = rootDir.path();
-
 
     // Fill root nodes
 
@@ -67,7 +64,7 @@ void AdsFileSystemModel::setRoot(const QString& root)
     handleError(ret);
 
     if(ret != ADSERR_NOERR){
-        QString errStr = QString("Specified root folder (%1) not found on target").arg(root);
+        QString errStr = QString("Specified root folder (%1) not found on target").arg(m_rootPath);
         throw std::system_error(ENOENT, std::generic_category(), errStr.toStdString());
     }
 
@@ -108,7 +105,6 @@ AmsNetId AdsFileSystemModel::createNetId(const QString &netId)
             // TODO: Throw!
         }
     }
-    //AmsNetId remoteNetId{ b_netId[0], b_netId[1], b_netId[2], b_netId[3], b_netId[4], b_netId[5] };
     return AmsNetId{ b_netId[0], b_netId[1], b_netId[2], b_netId[3], b_netId[4], b_netId[5] };
 }
 
@@ -141,10 +137,8 @@ int AdsFileSystemModel::rowCount(const QModelIndex &parent) const
     std::shared_ptr<AdsFileInfoNode> node;
 
     if(parent.isValid()){
-        AdsFileInfoNode* _node = reinterpret_cast<AdsFileInfoNode*>(parent.internalPointer());
         node = getPtr(reinterpret_cast<AdsFileInfoNode*>(parent.internalPointer()));
     } else {
-        //node = m_rootNode;
         return m_root.count();
     }
 
@@ -196,8 +190,12 @@ QModelIndex AdsFileSystemModel::index(int row, int column, const QModelIndex &pa
     if(parent.isValid()){
         _node = reinterpret_cast<AdsFileInfoNode*>(parent.internalPointer());
         node = getPtr(_node);
-        node = node->m_children[row];
-        return createIndex(row, column, node.get());
+        if(node->m_children.count() > row){
+            node = node->m_children[row];
+            return createIndex(row, column, node.get());
+        } else {
+            return QModelIndex();
+        }
     } else {
         node = m_root[row];
         return createIndex(row, column, node.get());
@@ -218,7 +216,6 @@ QModelIndex AdsFileSystemModel::parent(const QModelIndex &index) const
     } else {
 
         std::shared_ptr<AdsFileInfoNode> parent = node->m_parent;
-        // Jetzt: Row von parent herausfinden
 
         for(int row = 0; row < parent->m_children.count(); row++){
             if(parent->m_children[row].get() == node){
@@ -236,26 +233,25 @@ QVariant AdsFileSystemModel::data(const QModelIndex &index, int role) const
     if(index.isValid()){
         node = reinterpret_cast<AdsFileInfoNode*>(index.internalPointer());
     } else {
-        //node = m_rootNode.get();
-        int x = 3;
+        return QVariant();
     }
 
     if(role == 0){
 
-        if(index.column() == 0){
-            int y = 5;
-            return QVariant(node->m_name.toString());
-        } else if (index.column() == 1 && node->m_type == FileType::File){
-            return QVariant(QLocale::system().formattedDataSize(node->m_fileSize));
-        } else {
-            // Folders
-            return QVariant("-/-");
-//            if(node->m_extraInfo.isEmpty()){
-//                return QVariant("-/-");
-//            } else {
-//                return QVariant(node->m_extraInfo);
-//            }
+        bool isFolder = node->m_type == FileType::Folder || node->m_type == FileType::Folder_Initialized;
 
+        if(index.column() == 0 && !isFolder){
+            return QVariant(node->m_name.toString());
+        } else if(index.column() == 0 && isFolder){
+            return QVariant(QString(node->m_name.toString() + "/"));
+        } else if (index.column() == 1 && !isFolder){
+            return QVariant(QLocale::system().formattedDataSize(node->m_fileSize));
+        } else if (index.column() == 1 && isFolder && node->m_extraInfo.isEmpty()){
+            return QVariant("-/-");
+        } else if (index.column() == 1 && isFolder){
+            return QVariant(node->m_extraInfo);
+        } else {
+            return QVariant();
         }
 
     } else {
@@ -269,7 +265,7 @@ QVariant AdsFileSystemModel::headerData(int section, Qt::Orientation orientation
     QVariant ret;
     if(orientation == Qt::Horizontal && role == Qt::DisplayRole){
         if(section == 0){
-            ret = QVariant("Path"); // TODO
+            ret = QVariant(m_rootPath);
         } else if (section == 1) {
             ret = QVariant("Size");
         }
@@ -340,7 +336,8 @@ bool AdsFileSystemModel::dropMimeData(const QMimeData *data, Qt::DropAction acti
 
             if(!nodeAlreadyExist){
 
-                int target_row = node->m_children.count() - 1;
+                //int target_row = (node->m_children.count() == 0) ? 0 : node->m_children.count() - 1;
+                int target_row = node->m_children.count();
                 beginInsertRows(_parent, target_row, target_row);
                 auto newNode = std::shared_ptr<AdsFileInfoNode>(new AdsFileInfoNode(node->m_absPath, url.fileName(), FileType::File, size, m_fso, node));
                 node->m_children.append(newNode);
